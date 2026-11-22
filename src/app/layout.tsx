@@ -5,9 +5,25 @@ import "./globals.css";
 import { AppProviders } from "@/components/providers/app-providers";
 import { AppShell } from "@/components/layout/app-shell";
 
+/**
+ * Prefer an explicit public URL, then Vercel's production alias, then the
+ * per-deployment URL, and only fall back to localhost in local dev.
+ */
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicit) return explicit.startsWith("http") ? explicit : `https://${explicit}`;
+  const vercel =
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+    process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel}`;
+  return "http://localhost:3000";
+}
+
 export const metadata: Metadata = {
-  // Absolute URLs are required for Open Graph images in production.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://vybe-music.vercel.app"),
+  // Absolute URLs are required for Open Graph images. Vercel injects the real
+  // deployment host at build time, so no manual configuration is needed; the
+  // explicit env var still wins for custom domains.
+  metadataBase: new URL(resolveSiteUrl()),
   title: {
     default: "VYBE — Free music streaming",
     template: "%s · VYBE",
